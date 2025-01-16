@@ -30,6 +30,7 @@ const Buttons = {
   settings: document.querySelector(`#button-settings`),
   alwaysOnTop: document.querySelector(`#button-always-on-top`),
   browse: document.querySelector(`#button-browse`),
+  alwaysOnTop: document.querySelector(`#button-always-on-top`),
 };
 
 const ModMap = {
@@ -43,6 +44,10 @@ const updateAlwaysOnTopButton = (isAlwaysOnTop) =>
   Buttons.alwaysOnTop.querySelector(`img`).src = isAlwaysOnTop ? `asset/icons8-pin-filled-25.png`:`asset/icons8-pin-hollow-25.png`;
 updateAlwaysOnTopButton(await window.electronAPI.isAlwaysOnTop());
 
+Buttons.alwaysOnTop.addEventListener(`click`, async() => {
+  const isPinned = await window.electronAPI.toggleAlwaysOnTop();
+  updateAlwaysOnTopButton(isPinned);
+});
 
 Buttons.close.addEventListener(`click`, () => {
   window.electronAPI.closeWindow();
@@ -50,11 +55,6 @@ Buttons.close.addEventListener(`click`, () => {
 
 Buttons.settings.addEventListener(`click`, () => {
   window.electronAPI.showSettings();
-});
-
-Buttons.alwaysOnTop.addEventListener(`click`, async() => {
-  const isPinned = await window.electronAPI.toggleAlwaysOnTop();
-  updateAlwaysOnTopButton(isPinned);
 });
 
 Buttons.browse.addEventListener(`pointerdown`, () => {
@@ -67,7 +67,6 @@ Buttons.browse.addEventListener(`pointerdown`, () => {
 Buttons.browse.addEventListener(`pointerup`, () => {
   Fields.last.classList.toggle(`sgv__last--accented`);
 });
-
 
 Fields.last.addEventListener(`mouseup`, (evt) => {
   evt.target.classList.toggle(`sgv__last--accented`, false);

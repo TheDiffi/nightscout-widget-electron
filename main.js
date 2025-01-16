@@ -24,8 +24,6 @@ if (config.has(`JWT_EXPIRATION`)) {
 config.set(`CUSTOM_URL_ONE`, customUrls.CUSTOM_URL_ONE);
 config.set(`CUSTOM_URL_TWO`, customUrls.CUSTOM_URL_TWO);
 
-const shortcut = `Control+Alt+G`;
-
 //const ajv = new Ajv();
 
 const alert = (type, title, message, parentWindow = null) => {
@@ -86,7 +84,7 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, `js/preload.js`)
     },
-    alwaysOnTop: false,
+    alwaysOnTop: config.get(`WIDGET.ALWAYS_ON_TOP`) ?? true,
     frame: false,
     skipTaskbar: true,
     transparent: true,
@@ -95,7 +93,7 @@ const createWindow = () => {
 
   const settingsBounds = {
     width: 800,
-    height: 530,
+    height: 680,
   };
 
   const getPosition = () => {
@@ -279,13 +277,13 @@ app.whenReady().then(() => {
     const prefix = `Renderer:`;
     switch (level) {
     case `info`:
-      log.info(`${prefix} ${msg}`);
+      log.info(`${prefix} ${JSON.stringify(msg)}`);
       break;
     case `warn`:
-      log.warn(`${prefix} ${msg}`, `color: orange`);
+      log.warn(`${prefix} ${JSON.stringify(msg)}`, `color: orange`);
       break;
     case `error`:
-      log.error(`${prefix} ${msg}`, `color: red`);
+      log.error(`${prefix} ${JSON.stringify(msg)}`, `color: red`);
       break;
     }
   });
@@ -307,17 +305,6 @@ app.whenReady().then(() => {
     } else {
       widget.settingsWindow.hide();
     }
-  });
-
-  ipcMain.handle(`toggle-always-on-top`, () => {
-    const newState = !widget.mainWindow.isAlwaysOnTop();
-    widget.mainWindow.setAlwaysOnTop(newState);
-    log.info(`Always on top was toggled to ${newState}`);
-    return newState;
-  });
-
-  ipcMain.handle(`is-always-on-top`, () => {
-    return widget.mainWindow.isAlwaysOnTop();
   });
 
   ipcMain.on(`restart`, () => {
@@ -389,6 +376,9 @@ app.whenReady().then(() => {
       config.set(`WIDGET.SHOW_AGE`, data[`show-age`]);
       config.set(`WIDGET.UNITS_IN_MMOL`, data[`units-in-mmol`]);
       config.set(`WIDGET.CALC_TREND`, data[`calc-trend`]);
+      config.set(`WIDGET.ALWAYS_ON_TOP`, data[`always-on-top`]);
+      config.set(`SHORTCUT.ENABLED`, data[`enable-shortcut`]);
+      config.set(`SHORTCUT.COMBINATION`, data[`shortcut-combination`]);
       config.set(`BG.HIGH`, parseFloat(data[`bg-high`]));
       config.set(`BG.LOW`, parseFloat(data[`bg-low`]));
       config.set(`BG.TARGET.TOP`, parseFloat(data[`bg-target-top`]));
@@ -415,17 +405,27 @@ app.whenReady().then(() => {
     config.set(`WIDGET.CALC_TREND`, calcTrend);
     widget.mainWindow.webContents.send(`set-calc-trend`, calcTrend, isMMOL);
   });
- 
 
-  // Register a 'CommandOrControl+X' shortcut listener.
-  const ret = globalShortcut.register(shortcut, () => {
-    log.info(shortcut +` is pressed`);
-    widget.mainWindow.show();
+  ipcMain.handle(`toggle-always-on-top`, () => {
+    const newState = !widget.mainWindow.isAlwaysOnTop();
+    widget.mainWindow.setAlwaysOnTop(newState);
+    return newState;
   });
 
-  if (!ret) {
-    log.warn(`registration failed`);
+  ipcMain.handle(`is-always-on-top`, () => {
+    return widget.mainWindow.isAlwaysOnTop();
+  });
+
+  if(config.get(`SHORTCUT.ENABLED`)) {
+    const ret = globalShortcut.register(config.get(`SHORTCUT.COMBINATION`) , () => {
+      widget.mainWindow.show();
+    });
+    
+    if (!ret) {
+      log.warn(`shortcut registration failed`);
+    }
   }
+
 });
 
 if (isMac) {

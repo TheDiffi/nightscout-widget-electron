@@ -251,7 +251,8 @@ a:focus-visible {
   grid-template-columns: 42% auto;
 }
 
-.settings-fields__nightscout {
+.settings-fields__nightscout,
+.settings-fields__other {
   grid-column: span 2;
 }
 
@@ -382,7 +383,9 @@ a:focus-visible {
 .settings-input__field--checkbox {
   width: 30px;
   height: 30px;
+}
 
+.settings-fields__widget .settings-input__field--checkbox {
   margin-right: 40px;
 }
 
