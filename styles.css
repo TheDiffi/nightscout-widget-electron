@@ -108,19 +108,19 @@ a:focus-visible {
   font-weight: 800;
 }
 
-.sgv:has(.sgv__last--ok) {
+.sgv--ok {
   /*  color: var(--color_sgv_ok);
     text-shadow: 1px 1px 0px var(--color_sgv_ok_shadow); */
   box-shadow: inset 0 0 50px var(--color_sgv_ok);
 }
 
-.svg:has(.sgv__last--warning) {
+.sgv--warning {
   /* color: var(--color_sgv_warning);
     text-shadow: 1px 1px 0px var(--color_sgv_warning_shadow); */
   box-shadow: inset 0 0 50px var(--color_sgv_warning);
 }
 
-.sgv:has(.sgv__last--critical) {
+.sgv--critical {
   /* color: var(--color_sgv_critical);
     text-shadow: 1px 1px 0px var(--color_sgv_critical_shadow); */
   box-shadow: inset 0 0 50px var(--color_sgv_critical);
@@ -363,8 +363,11 @@ a:focus-visible {
 
 .settings-input__check-wrapper {
   width: 100%;
-
   display: flex;
+  gap: 10px;
+}
+
+.settings-input__check-wrapper.check-reverse {
   flex-direction: row-reverse;
   justify-content: space-between;
 }

@@ -34,10 +34,10 @@ const Buttons = {
 };
 
 const ModMap = {
-  critical: `sgv__last--critical`,
-  warning: `sgv__last--warning`,
-  ok: `sgv__last--ok`,
-  default: `sgv__last--`,
+  critical: `sgv--critical`,
+  warning: `sgv--warning`,
+  ok: `sgv--ok`,
+  default: `sgv--`,
 };
 
 const updateAlwaysOnTopButton = (isAlwaysOnTop) => 
@@ -82,8 +82,8 @@ const render = (data) => {
     Fields.age.style.display = `block`;
   }
 
-  if (!Fields.last.className.includes(ModMap.default)) {
-    Fields.last.classList.add(ModMap.default);
+  if (!Fields.sgv.className.includes(ModMap.default)) {
+    Fields.sgv.classList.add(ModMap.default);
   }
 
   if (data.age.toString().length > DATA_AGE_SHOW_LIMIT.toString().length) {
@@ -112,8 +112,9 @@ const render = (data) => {
     }
   }
 
-  Fields.last.className = Fields.last.className.replace(
-    /sgv__last--\S*/,
+
+  Fields.sgv.className = Fields.sgv.className.replace(
+    /sgv--\S*/,
     classMod
   );
 };
@@ -146,7 +147,7 @@ const onError = (errorMessage) => {
   if (retry > CONNECTION_RETRY_LIMIT && !isAlertShown) {
     log.error(msg);
     Fields.sgv.classList.add(`sgv--frozen`);
-    Fields.last.className = Fields.last.className.replace(
+    Fields.sgv.className = Fields.sgv.className.replace(
       /sgv__last--.*/,
       ModMap.default
     );

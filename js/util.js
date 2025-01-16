@@ -118,7 +118,7 @@ const calcTrend = (data) => {
 
 /**
  * @typedef {Object} DataItem
- * @property {number} sgv - The sgv value. svg = sensor glucose value.
+ * @property {number} sgv - The sgv value. sgv = sensor glucose value.
  * @property {number} date - The date in milliseconds.
  * @property {string} [direction] - The direction of the data (optional).
  */
