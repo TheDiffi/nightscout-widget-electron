@@ -1,6 +1,6 @@
 "use strict";
 
-import { getData } from "./backend.js";
+import { getData } from "./backend-custom.js";
 import { prepareData, alert, convertUnitsFor } from "./util.js";
 
 const CONNECTION_RETRY_LIMIT = 5;

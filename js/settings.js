@@ -1,7 +1,7 @@
 "use strict";
 
 import { customAssign, alert, convertUnitsFor, formDataToObject } from "./util.js";
-import { getStatus } from "./backend.js";
+import { getStatus } from "./backend-custom.js";
 import { Translator } from "./translator.js";
 
 const LANGUAGE = await window.electronAPI.getLanguage();

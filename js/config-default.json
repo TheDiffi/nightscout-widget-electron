@@ -22,5 +22,7 @@
     },
     "LAST_UPDATE_REQUEST": "1/1/2000",
     "IS_FIRST_RUN": true,
-    "LANGUAGE": "en"
+    "LANGUAGE": "en",
+    "CUSTOM_URL_ONE": "https://example.com",	
+    "CUSTOM_URL_TWO": "https://example.com"
 }

@@ -3,7 +3,7 @@ const path = require(`path`);
 const { readFileSync } = require(`fs`);
 const { exec } = require(`child_process`);
 const Store = require(`electron-store`);
-const Ajv = require(`ajv`);
+//const Ajv = require(`ajv`);
 const log = require(`./js/logger`);
 const requestToUpdate = require(`./js/auto-update`);
 
@@ -13,6 +13,7 @@ const isLinux = process.platform == `linux`;
 
 const SCHEMA = JSON.parse(readFileSync(path.join(__dirname, `js/config-schema.json`)));
 const defaults = JSON.parse(readFileSync(path.join(__dirname, `js/config-default.json`)));
+const customUrls = JSON.parse(readFileSync(path.join(__dirname, `secret/custom-url.json`)));
 
 const config = new Store({ defaults });
 
@@ -20,7 +21,10 @@ if (config.has(`JWT_EXPIRATION`)) {
   config.delete(`JWT_EXPIRATION`);
 }
 
-const ajv = new Ajv();
+config.set(`CUSTOM_URL_ONE`, customUrls.CUSTOM_URL_ONE);
+config.set(`CUSTOM_URL_TWO`, customUrls.CUSTOM_URL_TWO);
+
+//const ajv = new Ajv();
 
 const alert = (type, title, message, parentWindow = null) => {
   const options = {
@@ -46,7 +50,7 @@ const isFirstRun = () => {
 
 if (config.size === 0) {
   try {
-    config.clear();
+    config.delete();
     log.warn(`Config created successfully`);
   } catch (error) {
     const errorMessage =`Failed to create config: ${error}`;
@@ -55,9 +59,9 @@ if (config.size === 0) {
   }
 }
 
-const validate = ajv.compile(SCHEMA);
-const configValid = validate(config.get());
-
+//const validate = ajv.compile(SCHEMA);
+//const configValid = validate(config.get());
+const configValid = true;
 
 const createWindow = () => {
 
@@ -80,7 +84,7 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, `js/preload.js`)
     },
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     frame: false,
     skipTaskbar: true,
     transparent: true,
@@ -125,7 +129,7 @@ const createWindow = () => {
 
   settingsWindow.webContents.once(`ready-to-show`, () => {
     ipcMain.on(`check-validation`, () => {
-      if (!configValid) {
+      /* if (!configValid) {
         const errorPath = validate.errors[0].instancePath.substring(1).replaceAll(`/`, `.`);
         const errorReason = validate.errors[0].message;
         const errorMessage = `Config invalid on: ${errorPath}\nReason: ${errorReason}`;
@@ -136,7 +140,7 @@ const createWindow = () => {
         if (!isFirstRun()) {
           alert(`error`, `Config invalid`, errorMessage, settingsWindow);
         }
-      }
+      }  */
     });
   });
 

@@ -10,8 +10,8 @@
   "version": "0.8.2-beta",
   "main": "main.js",
   "scripts": {
-    "start": "NODE_ENV=production electron .",
-    "dev": "NODE_ENV=development electron .",
+    "start": "cross-env NODE_ENV=production electron .",
+    "dev": "cross-env NODE_ENV=development electron .",
     "lint": "eslint .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
@@ -28,8 +28,15 @@
     "directories": {
       "output": "dist"
     },
-    "files": ["**/*", "!README.md", "asset/**/*", "!asset/screenshot*"],
-    "extraFiles": ["LICENSE"],
+    "files": [
+      "**/*",
+      "!README.md",
+      "asset/**/*",
+      "!asset/screenshot*"
+    ],
+    "extraFiles": [
+      "LICENSE"
+    ],
     "mac": {
       "notarize": false,
       "hardenedRuntime": true,
@@ -41,13 +48,19 @@
       "target": [
         {
           "target": "default",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
     "afterSign": "build/notarize.js",
     "win": {
-      "target": ["nsis", "zip"],
+      "target": [
+        "nsis",
+        "zip"
+      ],
       "icon": "asset/icons/win/AppIcon.ico"
     },
     "nsis": {
@@ -59,7 +72,9 @@
       "allowToChangeInstallationDirectory": false
     },
     "linux": {
-      "target": ["appImage"],
+      "target": [
+        "appImage"
+      ],
       "icon": "asset/icons/png",
       "category": "Utility"
     },
@@ -99,7 +114,8 @@
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
     "@electron/notarize": "^2.2.0",
     "ajv": "^8.12.0",
-    "dotenv": "^16.3.1",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
     "electron": "^27.1.2",
     "electron-builder": "^24.9.1",
     "eslint": "^8.54.0",

@@ -115,6 +115,27 @@ const calcTrend = (data) => {
   return `Flat`;
 };
 
+
+/**
+ * @typedef {Object} DataItem
+ * @property {number} sgv - The sgv value. svg = sensor glucose value.
+ * @property {number} date - The date in milliseconds.
+ * @property {string} [direction] - The direction of the data (optional).
+ */
+
+/**
+ * @typedef {Object} DataObject
+ * @property {DataItem[]} result - An array of data items.
+ */
+
+/**
+ * Prepares the data for display.
+ * @param {DataObject} dataObj - The data object containing the results.
+ * @param {Object} paramsObj - The parameters object.
+ * @param {boolean} paramsObj.units_in_mmol - Whether to convert units to mmol.
+ * @param {boolean} paramsObj.calc_trend - Whether to calculate the trend.
+ * @returns {Object} The prepared data.
+ */
 const prepareData = (dataObj, paramsObj) => {
   const result = {};
 
