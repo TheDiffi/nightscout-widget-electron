@@ -28,6 +28,7 @@ const flickerFields = document.querySelectorAll(`.sgv--flicker`);
 const Buttons = {
   close: document.querySelector(`#button-close`),
   settings: document.querySelector(`#button-settings`),
+  alwaysOnTop: document.querySelector(`#button-always-on-top`),
   browse: document.querySelector(`#button-browse`),
 };
 
@@ -38,12 +39,22 @@ const ModMap = {
   default: `sgv__last--`,
 };
 
+const updateAlwaysOnTopButton = (isAlwaysOnTop) => 
+  Buttons.alwaysOnTop.querySelector(`img`).src = isAlwaysOnTop ? `asset/icons8-pin-filled-25.png`:`asset/icons8-pin-hollow-25.png`;
+updateAlwaysOnTopButton(await window.electronAPI.isAlwaysOnTop());
+
+
 Buttons.close.addEventListener(`click`, () => {
   window.electronAPI.closeWindow();
 });
 
 Buttons.settings.addEventListener(`click`, () => {
   window.electronAPI.showSettings();
+});
+
+Buttons.alwaysOnTop.addEventListener(`click`, async() => {
+  const isPinned = await window.electronAPI.toggleAlwaysOnTop();
+  updateAlwaysOnTopButton(isPinned);
 });
 
 Buttons.browse.addEventListener(`pointerdown`, () => {
@@ -56,6 +67,7 @@ Buttons.browse.addEventListener(`pointerdown`, () => {
 Buttons.browse.addEventListener(`pointerup`, () => {
   Fields.last.classList.toggle(`sgv__last--accented`);
 });
+
 
 Fields.last.addEventListener(`mouseup`, (evt) => {
   evt.target.classList.toggle(`sgv__last--accented`, false);
@@ -103,7 +115,7 @@ const render = (data) => {
 
   Fields.last.className = Fields.last.className.replace(
     /sgv__last--\S*/,
-    classMod,
+    classMod
   );
 };
 
@@ -137,7 +149,7 @@ const onError = (errorMessage) => {
     Fields.sgv.classList.add(`sgv--frozen`);
     Fields.last.className = Fields.last.className.replace(
       /sgv__last--.*/,
-      ModMap.default,
+      ModMap.default
     );
     alert(`error`, `Connection error`, msg);
     isAlertShown = true;
@@ -160,7 +172,9 @@ window.electronAPI.setCalcTrend((_evt, calcTrend, isMMOL) => {
   log.info(`Test trend calculation: ${calcTrend}`);
 
   const onSuccessSwitch = (result) => {
-    render(prepareData(result, { units_in_mmol: isMMOL, calc_trend: calcTrend }));
+    render(
+      prepareData(result, { units_in_mmol: isMMOL, calc_trend: calcTrend })
+    );
   };
 
   getData(onSuccessSwitch, onError);

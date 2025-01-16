@@ -1,4 +1,4 @@
-const { app, BrowserWindow, powerMonitor, ipcMain, nativeTheme, shell, dialog } = require(`electron`);
+const { app, BrowserWindow, powerMonitor, ipcMain, nativeTheme, shell, dialog, globalShortcut } = require(`electron`);
 const path = require(`path`);
 const { readFileSync } = require(`fs`);
 const { exec } = require(`child_process`);
@@ -11,7 +11,7 @@ const isDev = process.env.NODE_ENV === `development`;
 const isMac = process.platform == `darwin`;
 const isLinux = process.platform == `linux`;
 
-const SCHEMA = JSON.parse(readFileSync(path.join(__dirname, `js/config-schema.json`)));
+//const SCHEMA = JSON.parse(readFileSync(path.join(__dirname, `js/config-schema.json`)));
 const defaults = JSON.parse(readFileSync(path.join(__dirname, `js/config-default.json`)));
 const customUrls = JSON.parse(readFileSync(path.join(__dirname, `secret/custom-url.json`)));
 
@@ -23,6 +23,8 @@ if (config.has(`JWT_EXPIRATION`)) {
 
 config.set(`CUSTOM_URL_ONE`, customUrls.CUSTOM_URL_ONE);
 config.set(`CUSTOM_URL_TWO`, customUrls.CUSTOM_URL_TWO);
+
+const shortcut = `Control+Alt+G`;
 
 //const ajv = new Ajv();
 
@@ -40,13 +42,13 @@ const alert = (type, title, message, parentWindow = null) => {
 };
 
 
-const isFirstRun = () => {
+/* const isFirstRun = () => {
   const isFirstRun = config.get(`IS_FIRST_RUN`);
   if (isFirstRun) {
     config.set(`IS_FIRST_RUN`, false);
   }
   return isFirstRun;
-};
+}; */
 
 if (config.size === 0) {
   try {
@@ -307,6 +309,17 @@ app.whenReady().then(() => {
     }
   });
 
+  ipcMain.handle(`toggle-always-on-top`, () => {
+    const newState = !widget.mainWindow.isAlwaysOnTop();
+    widget.mainWindow.setAlwaysOnTop(newState);
+    log.info(`Always on top was toggled to ${newState}`);
+    return newState;
+  });
+
+  ipcMain.handle(`is-always-on-top`, () => {
+    return widget.mainWindow.isAlwaysOnTop();
+  });
+
   ipcMain.on(`restart`, () => {
     const args = process.argv.slice(1);
     const options = { args };
@@ -402,7 +415,17 @@ app.whenReady().then(() => {
     config.set(`WIDGET.CALC_TREND`, calcTrend);
     widget.mainWindow.webContents.send(`set-calc-trend`, calcTrend, isMMOL);
   });
+ 
 
+  // Register a 'CommandOrControl+X' shortcut listener.
+  const ret = globalShortcut.register(shortcut, () => {
+    log.info(shortcut +` is pressed`);
+    widget.mainWindow.show();
+  });
+
+  if (!ret) {
+    log.warn(`registration failed`);
+  }
 });
 
 if (isMac) {
@@ -443,5 +466,6 @@ if (isMac) {
 }
 
 app.on(`window-all-closed`, () => {
+  globalShortcut.unregisterAll();
   app.quit();
 });
