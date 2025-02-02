@@ -30,7 +30,6 @@ const Buttons = {
   settings: document.querySelector(`#button-settings`),
   alwaysOnTop: document.querySelector(`#button-always-on-top`),
   browse: document.querySelector(`#button-browse`),
-  alwaysOnTop: document.querySelector(`#button-always-on-top`),
 };
 
 const ModMap = {

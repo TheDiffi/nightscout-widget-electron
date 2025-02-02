@@ -16,6 +16,7 @@ const dir2Char = {
 };
 
 const MMOL_TO_MGDL_RATE = 18;
+const TIME_TO_MINUTES = 1000 * 60;
 
 const customAssign = (targetObject, patchObject) => {
 
@@ -129,34 +130,53 @@ const calcTrend = (data) => {
  */
 
 /**
+ * @typedef {Object} RenderableData
+ * @property {number | string} last - The last glucose value.
+ * @property {number} prev - The previous glucose value.
+ * @property {number} deltaTime - The time difference between the last and previous values.
+ * @property {number} age - The age of the last value.
+ * @property {string} delta - The svg delta value over 5 minutes.
+ * @property {string} direction - The direction of the data.
+ */
+
+/**
  * Prepares the data for display.
  * @param {DataObject} dataObj - The data object containing the results.
  * @param {Object} paramsObj - The parameters object.
  * @param {boolean} paramsObj.units_in_mmol - Whether to convert units to mmol.
  * @param {boolean} paramsObj.calc_trend - Whether to calculate the trend.
- * @returns {Object} The prepared data.
+ * @returns {RenderableData} The prepared data.
  */
 const prepareData = (dataObj, paramsObj) => {
   const result = {};
 
   result.last = dataObj.result[0].sgv;
   result.prev = dataObj.result[1].sgv;
+  result.deltaTime = dataObj.result[0].date - dataObj.result[1].date;
 
   const currentTime = new Date();
-  result.age = Math.floor((currentTime.getTime() - dataObj.result[0].date) / 1000 / 60);
+  result.age = Math.floor(
+    (currentTime.getTime() - dataObj.result[0].date) / TIME_TO_MINUTES
+  );
 
-  let delta = Math.round((result.last - result.prev) * 100) / 100;
+  // Calculate the delta
+  let deltaSvg = result.last - result.prev;
+  // Normalize to 5 minutes
+  deltaSvg = deltaSvg / (result.deltaTime / (TIME_TO_MINUTES * 5));
+  // Round to 2 decimal place
+  deltaSvg = Math.round(deltaSvg * 100) / 100;
 
+  // Convert to mmol
   if (paramsObj.units_in_mmol) {
-    delta = mgdlToMMOL(delta);
+    deltaSvg = mgdlToMMOL(deltaSvg);
   }
 
-  if (delta > 0) {
-    result.delta = `+${delta}`;
-  } else if (delta == 0) {
+  if (deltaSvg > 0) {
+    result.delta = `+${deltaSvg}`;
+  } else if (deltaSvg == 0) {
     result.delta = `+${paramsObj.units_in_mmol ? `0.0` : `0`}`;
   } else {
-    result.delta = delta.toString();
+    result.delta = deltaSvg.toString();
   }
 
   if (paramsObj.units_in_mmol) {

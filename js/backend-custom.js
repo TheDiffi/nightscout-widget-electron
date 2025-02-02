@@ -206,16 +206,14 @@ const getData = (onSuccess, onError) => {
     fillingHistoryWithGraphData(onSuccess, onError);
     return;
   }
-  
+
   log.info(`Getting Data...`);
   const xhr = createRequest(
     `GET`,
     CONFIG.CUSTOM_URL_ONE,
     (response) => {
       const responseObj = new LegendaryApiResponse("current", response);
-      console.log('responseObj >>:',responseObj);
       measurementsHistory.updateHistory(responseObj.getCleandData());
-      console.log(measurementsHistory.getHistory());
       onSuccess({ result: measurementsHistory.getHistory() });
     },
     onError
