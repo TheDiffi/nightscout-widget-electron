@@ -1,5 +1,17 @@
 "use strict";
 
+/**
+ * @typedef {Object} DataItem
+ * @property {number} sgv - The sgv value. sgv = sensor glucose value.
+ * @property {number} date - The date in milliseconds.
+ * @property {string} [direction] - The direction of the data (optional).
+ */
+
+/**
+ * @typedef {Object} DataObject
+ * @property {DataItem[]} result - An array of data items.
+ */
+
 const dir2Char = {
   NONE: `⇼`,
   TripleUp: `⤊`,
@@ -116,18 +128,36 @@ const calcTrend = (data) => {
   return `Flat`;
 };
 
-
 /**
- * @typedef {Object} DataItem
- * @property {number} sgv - The sgv value. sgv = sensor glucose value.
- * @property {number} date - The date in milliseconds.
- * @property {string} [direction] - The direction of the data (optional).
+ * Calculates the SVG delta.
+ * @param {DataObject} dataObj - The data object containing the results.
+ * @returns {number} The calculated SVG delta.
  */
 
-/**
- * @typedef {Object} DataObject
- * @property {DataItem[]} result - An array of data items.
- */
+const calculateSgvRateOfChange = (dataObj) => {
+  const latestReading = dataObj.result[0];
+
+  //find the previous value that is closest to 5 minutes before the last value
+  const fiveMinutesBeforeLatest = dataObj.result[0].date - TIME_TO_MINUTES * 5;
+  const distanceMap = dataObj.result.map((obj) =>
+    Math.abs(obj.date - fiveMinutesBeforeLatest)
+  );
+  const closestReading =
+    dataObj.result[distanceMap.indexOf(Math.min(...distanceMap))];
+  const deltaTimeMs = latestReading.date - closestReading.date;
+
+  // Guard against division by zero
+  if (deltaTimeMs === 0) {
+    return 0;
+  }
+
+  let readingDelta = latestReading.sgv - closestReading.sgv;
+  // Normalize to 5 minutes
+  readingDelta = readingDelta / (deltaTimeMs / (TIME_TO_MINUTES * 5));
+  // Round to 2 decimal place
+  readingDelta = Math.round(readingDelta * 100) / 100;
+  return readingDelta;
+};
 
 /**
  * @typedef {Object} RenderableData
@@ -152,6 +182,7 @@ const prepareData = (dataObj, paramsObj) => {
 
   result.last = dataObj.result[0].sgv;
   result.prev = dataObj.result[1].sgv;
+  let deltaSgv = calculateSgvRateOfChange(dataObj);
   result.deltaTime = dataObj.result[0].date - dataObj.result[1].date;
 
   const currentTime = new Date();
@@ -159,24 +190,16 @@ const prepareData = (dataObj, paramsObj) => {
     (currentTime.getTime() - dataObj.result[0].date) / TIME_TO_MINUTES
   );
 
-  // Calculate the delta
-  let deltaSvg = result.last - result.prev;
-  // Normalize to 5 minutes
-  deltaSvg = deltaSvg / (result.deltaTime / (TIME_TO_MINUTES * 5));
-  // Round to 2 decimal place
-  deltaSvg = Math.round(deltaSvg * 100) / 100;
-
-  // Convert to mmol
   if (paramsObj.units_in_mmol) {
-    deltaSvg = mgdlToMMOL(deltaSvg);
+    deltaSgv = mgdlToMMOL(deltaSgv);
   }
 
-  if (deltaSvg > 0) {
-    result.delta = `+${deltaSvg}`;
-  } else if (deltaSvg == 0) {
+  if (deltaSgv > 0) {
+    result.delta = `+${deltaSgv}`;
+  } else if (deltaSgv == 0) {
     result.delta = `+${paramsObj.units_in_mmol ? `0.0` : `0`}`;
   } else {
-    result.delta = deltaSvg.toString();
+    result.delta = deltaSgv.toString();
   }
 
   if (paramsObj.units_in_mmol) {
@@ -184,9 +207,13 @@ const prepareData = (dataObj, paramsObj) => {
   }
 
   if (paramsObj.calc_trend) {
-    result.direction = charToEntity(directionToChar(calcTrend(dataObj.result.map(obj => obj.sgv))));
+    result.direction = charToEntity(
+      directionToChar(calcTrend(dataObj.result.map((obj) => obj.sgv)))
+    );
   } else {
-    result.direction = charToEntity(directionToChar(dataObj.result[0].direction));
+    result.direction = charToEntity(
+      directionToChar(dataObj.result[0].direction)
+    );
   }
 
   return result;
