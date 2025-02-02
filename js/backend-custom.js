@@ -42,6 +42,8 @@ const StatusCode = {
 };
 
 class MeasurementsHistory {
+  MAX_HISTORY_LENGTH = 20;
+
   constructor() {
     this.measurementsHistory = [];
   }
@@ -61,8 +63,8 @@ class MeasurementsHistory {
       this.measurementsHistory.unshift({ ...data });
     }
 
-    // Remove the oldest measurement (9last element if the history is longer than 10
-    if (this.measurementsHistory.length > 10) {
+    // Remove the oldest measurement (9last element if the history is longer than max length)
+    if (this.measurementsHistory.length > this.MAX_HISTORY_LENGTH) {
       this.measurementsHistory.pop();
     }
 
@@ -74,7 +76,11 @@ class MeasurementsHistory {
       throw new Error("Invalid data provided");
     }
 
-    this.measurementsHistory = new Array(10).fill({ ...data }, 0, 9);
+    this.measurementsHistory = new Array(this.MAX_HISTORY_LENGTH).fill(
+      { ...data },
+      0,
+      this.MAX_HISTORY_LENGTH - 1
+    );
   }
 
   /**
@@ -87,8 +93,10 @@ class MeasurementsHistory {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid data provided");
     }
-    //only the first 10 items are needed
-    this.measurementsHistory = data.sort((a, b) => b.date - a.date).slice(0, 9);
+    //only the max length of the history is needed
+    this.measurementsHistory = data
+      .sort((a, b) => b.date - a.date)
+      .slice(0, this.MAX_HISTORY_LENGTH - 1);
   }
 
   getHistory() {
