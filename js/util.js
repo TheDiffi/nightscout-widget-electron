@@ -138,13 +138,20 @@ const calculateSgvRateOfChange = (dataObj) => {
   const latestReading = dataObj.result[0];
 
   //find the previous value that is closest to 5 minutes before the last value
-  const fiveMinutesBeforeLatest = dataObj.result[0].date - TIME_TO_MINUTES * 5;
+  const fiveMinutesBeforeLatest = latestReading.date - TIME_TO_MINUTES * 5;
   const distanceMap = dataObj.result.map((obj) =>
     Math.abs(obj.date - fiveMinutesBeforeLatest)
   );
-  const closestReading =
-    dataObj.result[distanceMap.indexOf(Math.min(...distanceMap))];
-  const deltaTimeMs = latestReading.date - closestReading.date;
+  let closestReadingIndex = distanceMap.indexOf(Math.min(...distanceMap));
+
+  // If the closest reading is the same as the latest reading, increment the index
+  if (latestReading.date - dataObj.result[closestReadingIndex].date <= 0) {
+    closestReadingIndex++;
+  }
+
+  const closestReading = dataObj.result[closestReadingIndex];
+  const deltaTimeMs =
+    latestReading.date - dataObj.result[closestReadingIndex].date;
 
   // Guard against division by zero
   if (deltaTimeMs === 0) {

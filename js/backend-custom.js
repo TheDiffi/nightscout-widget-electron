@@ -42,7 +42,7 @@ const StatusCode = {
 };
 
 class MeasurementsHistory {
-  MAX_HISTORY_LENGTH = 20;
+  MAX_HISTORY_LENGTH = 50;
 
   constructor() {
     this.measurementsHistory = [];
