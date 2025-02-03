@@ -161,8 +161,8 @@ const calculateSgvRateOfChange = (dataObj) => {
   let readingDelta = latestReading.sgv - closestReading.sgv;
   // Normalize to 5 minutes
   readingDelta = readingDelta / (deltaTimeMs / (TIME_TO_MINUTES * 5));
-  // Round to 2 decimal place
-  readingDelta = Math.round(readingDelta * 100) / 100;
+  // Round to 1 decimal place
+  readingDelta = Math.round(readingDelta * 10) / 10;
   return readingDelta;
 };
 
