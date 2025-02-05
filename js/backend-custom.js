@@ -70,7 +70,7 @@ class MeasurementsHistory {
     }
 
     if (!this.measurementsHistory.length) {
-      this._populateHistory(data);
+      this._initHistoryFromSinglePoint(data);
       return;
     }
 
@@ -93,7 +93,7 @@ class MeasurementsHistory {
    * @throws {Error} If data is invalid
    * @private
    */
-  _populateHistory(data) {
+  _initHistoryFromSinglePoint(data) {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid data provided");
     }
@@ -106,7 +106,7 @@ class MeasurementsHistory {
   }
 
   /**
-   * Populates history with sorted graph data
+   * Populates history with sorted graph data. Inserts values by the timestamp.
    * @param {GlucoseDataItem[]} data Array of measurements
    * @throws {Error} If data is invalid
    */
@@ -114,8 +114,15 @@ class MeasurementsHistory {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid data provided");
     }
-    //only the max length of the history is needed
-    this.measurementsHistory = data
+
+    let untrimmedData = data;
+
+    if (this.measurementsHistory.length) {
+      //insert new values where they belong on the timeline
+      untrimmedData = this.measurementsHistory.concat(data);
+    }
+
+    this.measurementsHistory = untrimmedData
       .sort((a, b) => b.date - a.date)
       .slice(0, this.MAX_HISTORY_LENGTH - 1);
   }
