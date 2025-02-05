@@ -22,6 +22,10 @@
  */
 
 /**
+ * @typedef {'graph'|'current'} ResponseType
+ */
+
+/**
  * @callback onSuccess
  * @param {GlucoseDataResponse} data - The data returned from the API call.
  */
@@ -42,12 +46,24 @@ const StatusCode = {
 };
 
 class MeasurementsHistory {
+  /** @type {number} Maximum number of history entries to store */
   MAX_HISTORY_LENGTH = 50;
+
+  /** @type {number} Maximum age of data in milliseconds (1 hour) */
+  MAX_AGE = 1000 * 60 * 60 * 1;
+
+  /** @type {GlucoseDataItem[]} Array of measurement history items */
+  measurementsHistory;
 
   constructor() {
     this.measurementsHistory = [];
   }
 
+  /**
+   * Updates measurement history with new data
+   * @param {GlucoseDataItem} data New measurement data
+   * @throws {Error} If data is invalid
+   */
   updateHistory(data) {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid data provided");
@@ -71,6 +87,12 @@ class MeasurementsHistory {
     // this.measurementsHistory.sort((a, b) => b.date - a.date);
   }
 
+  /**
+   * Populates initial history with repeated data
+   * @param {GlucoseDataItem} data Initial measurement data
+   * @throws {Error} If data is invalid
+   * @private
+   */
   _populateHistory(data) {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid data provided");
@@ -84,11 +106,10 @@ class MeasurementsHistory {
   }
 
   /**
-   * Transforms the API response to a glucose object.
-   * @param {GlucoseDataItem[]} data - The data returned from the API call.
-   * @returns {GlucoseDataResponse} The transformed glucose object.
-   *
-   **/
+   * Populates history with sorted graph data
+   * @param {GlucoseDataItem[]} data Array of measurements
+   * @throws {Error} If data is invalid
+   */
   populateWithGraphData(data) {
     if (!data || typeof data !== "object") {
       throw new Error("Invalid data provided");
@@ -99,27 +120,57 @@ class MeasurementsHistory {
       .slice(0, this.MAX_HISTORY_LENGTH - 1);
   }
 
+  /**
+   * Gets copy of measurement history
+   * @returns {GlucoseDataItem[]} Copy of measurements array
+   */
   getHistory() {
     return [...this.measurementsHistory];
+  }
+
+  /**
+   * Checks if history needs to be refilled
+   * @returns {boolean} True if refill needed
+   */
+  needsRefill() {
+    return (
+      !this.measurementsHistory.length ||
+      Date.now() - this.measurementsHistory[0].date > this.MAX_AGE
+    );
   }
 }
 
 const measurementsHistory = new MeasurementsHistory();
 
 class LegendaryApiResponse {
+  /**
+   * @param {ResponseType} type - Type of response (graph or current)
+   * @param {GlucoseMeasurement|GlucoseMeasurement[]} data - API response data
+   */
   constructor(type, data) {
+    /** @type {ResponseType} */
     this.type = type;
+    /** @type {GlucoseMeasurement|GlucoseMeasurement[]} */
     this.data = data;
+    /** @type {GlucoseDataItem|GlucoseDataItem[]} */
     this.cleanedData = this._cleanData();
   }
 
+  /**
+   * Cleans and transforms the raw API data
+   * @private
+   * @returns {GlucoseDataItem|GlucoseDataItem[]} Cleaned data
+   */
   _cleanData() {
-    if (this.type === "graph") {
-      return this.data
-        .map(this.transformCurrentToGlucoseItem)
-        .sort((a, b) => b.date - a.date);
-    } else if (this.type === "current") {
-      return this.transformCurrentToGlucoseItem(this.data);
+    switch (this.type) {
+      case "graph":
+        return this.data
+          .map(this.transformCurrentToGlucoseItem)
+          .sort((a, b) => b.date - a.date);
+      case "current":
+        return this.transformCurrentToGlucoseItem(this.data);
+      default:
+        throw Error("Invalid response type");
     }
   }
 
@@ -136,6 +187,10 @@ class LegendaryApiResponse {
     };
   };
 
+  /**
+   * Gets the cleaned data
+   * @returns {GlucoseDataItem|GlucoseDataItem[]} The cleaned data
+   */
   getCleandData() {
     return this.cleanedData;
   }
@@ -209,8 +264,8 @@ const createRequest = (method, url, onLoad, onError) => {
 const getData = (onSuccess, onError) => {
   log.info(`Backend Custom Script Loaded`);
   log.info(CONFIG);
-  if (!measurementsHistory.getHistory().length) {
-    log.info(`No history found. Fetching data from the API.`);
+
+  if (measurementsHistory.needsRefill()) {
     fillingHistoryWithGraphData(onSuccess, onError);
     return;
   }
@@ -236,6 +291,8 @@ const getData = (onSuccess, onError) => {
  * @param {onError} onError - The callback to handle errors.
  */
 const fillingHistoryWithGraphData = (onSuccess, onError) => {
+  log.info(`Refilling History. Fetching graph from the API`);
+
   const xhr = createRequest(
     `GET`,
     CONFIG.CUSTOM_URL_TWO,
