@@ -65,8 +65,8 @@ class MeasurementsHistory {
    * @throws {Error} If data is invalid
    */
   updateHistory(data) {
-    if (!data || typeof data !== "object") {
-      throw new Error("Invalid data provided");
+    if (!data || typeof data !== `object`) {
+      throw new Error(`Invalid data provided`);
     }
 
     if (!this.measurementsHistory.length) {
@@ -94,8 +94,8 @@ class MeasurementsHistory {
    * @private
    */
   _initHistoryFromSinglePoint(data) {
-    if (!data || typeof data !== "object") {
-      throw new Error("Invalid data provided");
+    if (!data || typeof data !== `object`) {
+      throw new Error(`Invalid data provided`);
     }
 
     this.measurementsHistory = new Array(this.MAX_HISTORY_LENGTH).fill(
@@ -111,8 +111,8 @@ class MeasurementsHistory {
    * @throws {Error} If data is invalid
    */
   populateWithGraphData(data) {
-    if (!data || typeof data !== "object") {
-      throw new Error("Invalid data provided");
+    if (!data || typeof data !== `object`) {
+      throw new Error(`Invalid data provided`);
     }
 
     let untrimmedData = data;
@@ -170,14 +170,14 @@ class LegendaryApiResponse {
    */
   _cleanData() {
     switch (this.type) {
-      case "graph":
-        return this.data
-          .map(this.transformCurrentToGlucoseItem)
-          .sort((a, b) => b.date - a.date);
-      case "current":
-        return this.transformCurrentToGlucoseItem(this.data);
-      default:
-        throw Error("Invalid response type");
+    case `graph`:
+      return this.data
+        .map(this.transformCurrentToGlucoseItem)
+        .sort((a, b) => b.date - a.date);
+    case `current`:
+      return this.transformCurrentToGlucoseItem(this.data);
+    default:
+      throw Error(`Invalid response type`);
     }
   }
 
@@ -190,7 +190,7 @@ class LegendaryApiResponse {
     return {
       sgv: data.Value,
       date: new Date(data.Timestamp).getTime(),
-      direction: "",
+      direction: ``,
     };
   };
 
@@ -219,23 +219,23 @@ const createRequest = (method, url, onLoad, onError) => {
     let xhrStatusText = ``;
 
     switch (xhr.status) {
-      case StatusCode.OK:
-        onLoad(xhr.response);
-        break;
-      case StatusCode.NOT_FOUND:
-        xhrStatusText = `The requested resource was not found on the server`;
-        onError(`Request status: ${xhr.status} - ${xhrStatusText}`);
-        break;
-      default:
-        if (xhr.response) {
-          xhrStatusText =
+    case StatusCode.OK:
+      onLoad(xhr.response);
+      break;
+    case StatusCode.NOT_FOUND:
+      xhrStatusText = `The requested resource was not found on the server`;
+      onError(`Request status: ${xhr.status} - ${xhrStatusText}`);
+      break;
+    default:
+      if (xhr.response) {
+        xhrStatusText =
             xhr.statusText === ``
               ? xhr.response.message
               : `${xhr.statusText}: ${xhr.response.message}`;
-        } else {
-          xhrStatusText = xhr.statusText;
-        }
-        onError(`Request status: ${xhr.status} - ${xhrStatusText}`);
+      } else {
+        xhrStatusText = xhr.statusText;
+      }
+      onError(`Request status: ${xhr.status} - ${xhrStatusText}`);
     }
   });
 
@@ -282,7 +282,7 @@ const getData = (onSuccess, onError) => {
     `GET`,
     CONFIG.CUSTOM_URL_ONE,
     (response) => {
-      const responseObj = new LegendaryApiResponse("current", response);
+      const responseObj = new LegendaryApiResponse(`current`, response);
       measurementsHistory.updateHistory(responseObj.getCleandData());
       onSuccess({ result: measurementsHistory.getHistory() });
     },
@@ -304,7 +304,7 @@ const fillingHistoryWithGraphData = (onSuccess, onError) => {
     `GET`,
     CONFIG.CUSTOM_URL_TWO,
     (response) => {
-      const responseObj = new LegendaryApiResponse("graph", response);
+      const responseObj = new LegendaryApiResponse(`graph`, response);
       measurementsHistory.populateWithGraphData(responseObj.getCleandData());
       getData(onSuccess, onError);
       return;

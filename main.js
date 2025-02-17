@@ -1,4 +1,4 @@
-const { app, BrowserWindow, powerMonitor, ipcMain, nativeTheme, shell, dialog, globalShortcut } = require(`electron`);
+const { app, BrowserWindow, powerMonitor, screen, ipcMain, nativeTheme, shell, dialog, globalShortcut } = require(`electron`);
 const path = require(`path`);
 const { readFileSync } = require(`fs`);
 const { exec } = require(`child_process`);
@@ -53,7 +53,7 @@ if (config.size === 0) {
     config.delete();
     log.warn(`Config created successfully`);
   } catch (error) {
-    const errorMessage =`Failed to create config: ${error}`;
+    const errorMessage = `Failed to create config: ${error}`;
     alert(`error`, `Config wasn't created`, errorMessage);
     log.error(errorMessage);
   }
@@ -416,11 +416,12 @@ app.whenReady().then(() => {
     return widget.mainWindow.isAlwaysOnTop();
   });
 
-  if(config.get(`SHORTCUT.ENABLED`)) {
-    const ret = globalShortcut.register(config.get(`SHORTCUT.COMBINATION`) , () => {
+  if (config.get(`SHORTCUT.ENABLED`)) {
+    const ret = globalShortcut.register(config.get(`SHORTCUT.COMBINATION`), () => {
+      const { x, y } = screen.getCursorScreenPoint();
+      widget.mainWindow.setPosition(x, y, false);
       widget.mainWindow.show();
     });
-    
     if (!ret) {
       log.warn(`shortcut registration failed`);
     }
