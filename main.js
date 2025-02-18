@@ -202,7 +202,7 @@ const createWindow = () => {
 
     switch (siteName) {
     case `nightscout`:
-      url = `https://map.davidpenn.dev/test/glucose-graph`;
+      url = `https://svelte.davidpenn.dev/glucose-graph`;
       break;
     case `poeditor`:
       url = `https://poeditor.com/join/project/PzcEMSOFc7`;
